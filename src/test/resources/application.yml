@@ -1,0 +1,14 @@
+spring:
+  main:
+    banner-mode: off
+  application:
+    name: football-be
+  thymeleaf:
+    cache: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 321216843150-kmt7e7bvovo7r1277a76en8picgi3sef.apps.googleusercontent.com
+            client-secret: something

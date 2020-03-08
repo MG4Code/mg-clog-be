@@ -1,0 +1,27 @@
+spring:
+  banner:
+    location: banner.txt
+  application:
+    name: football-be
+  thymeleaf:
+    cache: false
+  data:
+    mongodb:
+      database: clog
+      host: localhost
+      port: 27017
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+
+
+clog:
+  jwtSecret: footballSecretKey
+  jwtExpirationMs: 8640000
+
