@@ -71,4 +71,16 @@ public class JwtResponse {
     this.roles = roles;
     return this;
   }
+
+  @Override
+  public String toString() {
+    return "JwtResponse{" +
+      "token='" + token + '\'' +
+      ", type='" + type + '\'' +
+      ", id='" + id + '\'' +
+      ", username='" + username + '\'' +
+      ", email='" + email + '\'' +
+      ", roles=" + roles +
+      '}';
+  }
 }

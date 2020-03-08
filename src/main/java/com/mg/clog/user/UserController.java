@@ -1,5 +1,7 @@
 package com.mg.clog.user;
 
+import com.mg.clog.security.jwt.JwtUtils;
+import com.mg.clog.security.services.UserDetailsImpl;
 import com.mg.clog.user.data.model.Role;
 import com.mg.clog.user.data.model.User;
 import com.mg.clog.user.data.model.request.LoginRequest;
@@ -7,9 +9,9 @@ import com.mg.clog.user.data.model.request.SignupRequest;
 import com.mg.clog.user.data.model.response.JwtResponse;
 import com.mg.clog.user.data.model.response.MessageResponse;
 import com.mg.clog.user.data.repo.UserRepository;
-import com.mg.clog.security.jwt.JwtUtils;
-import com.mg.clog.security.services.UserDetailsImpl;
 import io.reactivex.Single;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +19,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.HashSet;
@@ -27,6 +33,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
+
+  private Logger logger = LoggerFactory.getLogger(UserController.class);
   private final AuthenticationManager authenticationManager;
   private final UserRepository userRepository;
   private final PasswordEncoder encoder;
@@ -54,11 +62,14 @@ public class UserController {
       .map(GrantedAuthority::getAuthority)
       .collect(Collectors.toList());
 
-    return Single.just(new JwtResponse(jwt,
+    var jwtResponse = new JwtResponse(jwt,
       userDetails.getId(),
       userDetails.getUsername(),
       userDetails.getEmail(),
-      roles));
+      roles);
+
+    logger.info("LOGIN: " + jwtResponse);
+    return Single.just(jwtResponse);
   }
 
   @PostMapping("/signup")
