@@ -1,5 +1,6 @@
 package com.mg.clog.user;
 
+import com.mg.clog.ClogProperties;
 import com.mg.clog.security.jwt.JwtUtils;
 import com.mg.clog.security.services.UserDetailsImpl;
 import com.mg.clog.user.data.model.Role;
@@ -19,14 +20,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -39,18 +36,19 @@ public class UserController {
   private final UserRepository userRepository;
   private final PasswordEncoder encoder;
   private final JwtUtils jwtUtils;
+  private final ClogProperties properties;
 
   @Autowired
-  public UserController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder encoder, JwtUtils jwtUtils) {
+  public UserController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder encoder, JwtUtils jwtUtils, ClogProperties properties) {
     this.authenticationManager = authenticationManager;
     this.userRepository = userRepository;
     this.encoder = encoder;
     this.jwtUtils = jwtUtils;
+    this.properties = properties;
   }
 
   @PostMapping("/signin")
   public Single<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
     var authentication = authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -68,7 +66,6 @@ public class UserController {
       userDetails.getEmail(),
       roles);
 
-    logger.info("LOGIN: " + jwtResponse);
     return Single.just(jwtResponse);
   }
 
@@ -79,41 +76,24 @@ public class UserController {
         .badRequest()
         .body(new MessageResponse("Error: Username is already taken!"));
     }
-
     if (userRepository.existsByEmail(signUpRequest.getEmail())) {
       return ResponseEntity
         .badRequest()
         .body(new MessageResponse("Error: Email is already in use!"));
     }
-
-    // Create new user's account
-    var user = new User(signUpRequest.getUsername(),
-      signUpRequest.getEmail(),
-      encoder.encode(signUpRequest.getPassword()));
-
-    var strRoles = signUpRequest.getRoles();
-    var roles = new HashSet<Role>();
-
-    if (strRoles == null) {
-      roles.add(Role.ROLE_USER);
-    } else {
-      strRoles.forEach(role -> {
-        switch (role) {
-          case "admin":
-            roles.add(Role.ROLE_ADMIN);
-            break;
-          case "mod":
-            roles.add(Role.ROLE_MODERATOR);
-            break;
-          default:
-            roles.add(Role.ROLE_USER);
-        }
-      });
+    if (!properties.getSecurityMapping().containsKey(signUpRequest.getEmail())) {
+      return ResponseEntity
+        .badRequest()
+        .body(new MessageResponse("Error: User with email '" + signUpRequest.getEmail() + "' is not allow to register!"));
     }
 
-    user.setRoles(roles);
+    var user = new User(
+      signUpRequest.getUsername(),
+      signUpRequest.getEmail(),
+      encoder.encode(signUpRequest.getPassword()),
+      properties.getSecurityMapping().getOrDefault(signUpRequest.getEmail(), List.of(Role.ROLE_USER.name())).stream().map(Role::valueOf).collect(Collectors.toSet())
+    );
     userRepository.save(user);
-
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
   }
 }

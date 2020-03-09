@@ -3,7 +3,6 @@ package com.mg.clog.user.data.model.request;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.Set;
 
 public class SignupRequest {
   @NotBlank
@@ -14,8 +13,6 @@ public class SignupRequest {
   @Size(max = 50)
   @Email
   private String email;
-
-  private Set<String> roles;
 
   @NotBlank
   @Size(min = 6, max = 40)
@@ -36,15 +33,6 @@ public class SignupRequest {
 
   public SignupRequest setEmail(String email) {
     this.email = email;
-    return this;
-  }
-
-  public Set<String> getRoles() {
-    return roles;
-  }
-
-  public SignupRequest setRoles(Set<String> roles) {
-    this.roles = roles;
     return this;
   }
 

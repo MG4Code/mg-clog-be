@@ -20,8 +20,12 @@ management:
     health:
       show-details: ALWAYS
 
-
 clog:
   jwtSecret: footballSecretKey
   jwtExpirationMs: 8640000
-
+  security-mapping:
+    '[aigner.georg.79@gmail.com]':
+      - ROLE_USER
+      - ROLE_ADMIN
+    '[mg4code@gmail.com]':
+      - ROLE_USER
