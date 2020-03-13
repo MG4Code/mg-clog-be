@@ -1,57 +1,52 @@
 package com.mg.clog.player;
 
 import com.mg.clog.player.data.model.Player;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
-import io.reactivex.Single;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/player")
 public class PlayerController {
 
   private final PlayerService service;
 
-  @Autowired
   public PlayerController(PlayerService service) {
     this.service = service;
   }
 
   @GetMapping
-  public Flowable<Player> list() {
+  public Flux<Player> list() {
     return service.list();
   }
 
   @GetMapping("id")
-  public Maybe<Player> findPlayer(@RequestParam("q") String id) {
+  public Mono<Player> findPlayer(@RequestParam("q") String id) {
     return service.findPlayerById(id);
   }
 
   @GetMapping("club")
-  public Flowable<Player> findClub(@RequestParam("q") String query) {
+  public Flux<Player> findClub(@RequestParam("q") String query) {
     return service.findAllForClub(query);
   }
 
   @PostMapping
-  public Single<Player> add(@RequestBody Player player) {
+  public Mono<Player> add(@RequestBody Player player) {
     return service.add(player);
   }
 
   @PutMapping("/{id}")
-  public Single<Player> put(@PathVariable("id") String id, @RequestBody Player player) {
+  public Mono<Player> put(@PathVariable("id") String id, @RequestBody Player player) {
     return service.put(id, player);
   }
 
   @DeleteMapping("/{id}")
-  public Completable delete(@PathVariable("id") String id) {
+  public Mono<Void> delete(@PathVariable("id") String id) {
     return service.delete(id);
   }
 
   @GetMapping("goalkeeper")
-  public Maybe<Player> getFirstGoalKeeper() {
+  public Mono<Player> getFirstGoalKeeper() {
     return service.getFirstGoalKeeper();
   }
 

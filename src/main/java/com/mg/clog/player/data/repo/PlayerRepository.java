@@ -1,13 +1,13 @@
 package com.mg.clog.player.data.repo;
 
 import com.mg.clog.player.data.model.Player;
-import io.reactivex.Flowable;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.repository.reactive.RxJava2SortingRepository;
+import org.springframework.data.repository.reactive.ReactiveSortingRepository;
+import reactor.core.publisher.Flux;
 
-public interface PlayerRepository extends RxJava2SortingRepository<Player, String>, CustomPlayerRepository {
+public interface PlayerRepository extends ReactiveSortingRepository<Player, String>, CustomPlayerRepository {
 
   @Query("{ 'club': {'$regex': ?0, '$options': 'i'}}")
-  Flowable<Player> findByClub(String club);
+  Flux<Player> findByClub(String club);
 
 }

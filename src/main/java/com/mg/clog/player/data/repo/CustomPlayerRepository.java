@@ -1,10 +1,10 @@
 package com.mg.clog.player.data.repo;
 
 import com.mg.clog.player.data.model.Player;
-import io.reactivex.Maybe;
+import reactor.core.publisher.Mono;
 
 public interface CustomPlayerRepository {
 
-  Maybe<Player> getFirstGoalKeeper();
+  Mono<Player> getFirstGoalKeeper();
 
 }

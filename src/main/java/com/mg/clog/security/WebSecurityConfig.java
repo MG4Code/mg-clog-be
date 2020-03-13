@@ -1,53 +1,41 @@
 package com.mg.clog.security;
 
 import com.mg.clog.ClogProperties;
-import com.mg.clog.security.jwt.AuthEntryPointJwt;
-import com.mg.clog.security.jwt.AuthTokenFilter;
-import com.mg.clog.security.services.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import reactor.core.publisher.Mono;
 
-@Configuration
-@EnableWebSecurity
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 @EnableConfigurationProperties(ClogProperties.class)
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
-  private final UserDetailsServiceImpl userDetailsService;
-  private final AuthEntryPointJwt unauthorizedHandler;
+  public static final String BEARER_KEY = "bearer-key";
+  private final AuthenticationManager authenticationManager;
+  private final SecurityContextRepository securityContextRepository;
 
-  @Autowired
-  public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthEntryPointJwt unauthorizedHandler) {
-    this.userDetailsService = userDetailsService;
-    this.unauthorizedHandler = unauthorizedHandler;
+  public WebSecurityConfig(AuthenticationManager authenticationManager, SecurityContextRepository securityContextRepository) {
+    this.authenticationManager = authenticationManager;
+    this.securityContextRepository = securityContextRepository;
   }
 
   @Bean
-  public AuthTokenFilter authenticationJwtTokenFilter() {
-    return new AuthTokenFilter();
-  }
-
-  @Override
-  public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-    authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
-  }
-
-  @Bean
-  @Override
-  public AuthenticationManager authenticationManagerBean() throws Exception {
-    return super.authenticationManagerBean();
+  public OpenAPI customOpenAPI() {
+    return new OpenAPI()
+      .components(new Components()
+        .addSecuritySchemes(BEARER_KEY,
+          new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
   }
 
   @Bean
@@ -55,15 +43,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return new BCryptPasswordEncoder();
   }
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http.cors().and().csrf().disable()
-      .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-      .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-      .authorizeRequests().antMatchers("/api/user/**").permitAll()
-      .antMatchers("/api/test/**").permitAll()
-      .anyRequest().authenticated();
-
-    http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+  @Bean
+  public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    return http
+      .exceptionHandling()
+      .authenticationEntryPoint((swe, e) -> Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED)))
+      .accessDeniedHandler((swe, e) -> Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN)))
+      .and()
+      .csrf().disable()
+      .formLogin().disable()
+      .httpBasic().disable()
+      .authenticationManager(authenticationManager)
+      .securityContextRepository(securityContextRepository)
+      .authorizeExchange()
+      .pathMatchers(HttpMethod.OPTIONS).permitAll()
+      .pathMatchers("/**").permitAll()
+      .anyExchange().authenticated()
+      .and().build();
   }
 }

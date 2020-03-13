@@ -2,7 +2,7 @@ spring:
   main:
     banner-mode: off
   application:
-    name: football-be
+    name: mg-clog-be
   thymeleaf:
     cache: false
   security:
@@ -12,3 +12,12 @@ spring:
           google:
             client-id: 321216843150-kmt7e7bvovo7r1277a76en8picgi3sef.apps.googleusercontent.com
             client-secret: something
+clog:
+  jwtSecret: footballSecretKey
+  jwtExpirationMs: 8640000
+  security-mapping:
+    '[aigner.georg.79@gmail.com]':
+      - ROLE_USER
+      - ROLE_ADMIN
+    '[mg4code@gmail.com]':
+      - ROLE_USER

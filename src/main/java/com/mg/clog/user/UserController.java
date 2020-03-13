@@ -1,8 +1,8 @@
 package com.mg.clog.user;
 
 import com.mg.clog.ClogProperties;
-import com.mg.clog.security.jwt.JwtUtils;
-import com.mg.clog.security.services.UserDetailsImpl;
+import com.mg.clog.exception.AccessDeniedException;
+import com.mg.clog.security.JwtUtil;
 import com.mg.clog.user.data.model.Role;
 import com.mg.clog.user.data.model.User;
 import com.mg.clog.user.data.model.request.LoginRequest;
@@ -10,19 +10,17 @@ import com.mg.clog.user.data.model.request.SignupRequest;
 import com.mg.clog.user.data.model.response.JwtResponse;
 import com.mg.clog.user.data.model.response.MessageResponse;
 import com.mg.clog.user.data.repo.UserRepository;
-import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,68 +30,101 @@ import java.util.stream.Collectors;
 public class UserController {
 
   private Logger logger = LoggerFactory.getLogger(UserController.class);
-  private final AuthenticationManager authenticationManager;
   private final UserRepository userRepository;
   private final PasswordEncoder encoder;
-  private final JwtUtils jwtUtils;
+  private final JwtUtil jwtUtil;
   private final ClogProperties properties;
 
   @Autowired
-  public UserController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder encoder, JwtUtils jwtUtils, ClogProperties properties) {
-    this.authenticationManager = authenticationManager;
+  public UserController(UserRepository userRepository, PasswordEncoder encoder, JwtUtil jwtUtil, ClogProperties properties) {
     this.userRepository = userRepository;
     this.encoder = encoder;
-    this.jwtUtils = jwtUtils;
+    this.jwtUtil = jwtUtil;
     this.properties = properties;
   }
 
   @PostMapping("/signin")
-  public Single<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-    var authentication = authenticationManager.authenticate(
-      new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+  public Mono<ResponseEntity<?>> login(@Valid @RequestBody LoginRequest loginRequest) {
+    return userRepository.findByUsername(loginRequest.getUsername()).map((userDetails) -> {
+      if (encoder.matches(loginRequest.getPassword(), userDetails.getPassword())) {
+        var jwt = jwtUtil.generateToken(userDetails);
+        var claims = jwtUtil.getAllClaimsFromToken(jwt);
+        var roles = userDetails.getRoles().stream()
+          .map(Enum::name)
+          .collect(Collectors.toList());
 
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    var jwt = jwtUtils.generateJwtToken(authentication);
+        var response = new JwtResponse(jwt,
+          userDetails.getId(),
+          userDetails.getUsername(),
+          userDetails.getEmail(),
+          new Date((Integer) claims.get("exp")),
+          roles);
 
-    var userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    var roles = userDetails.getAuthorities().stream()
-      .map(GrantedAuthority::getAuthority)
-      .collect(Collectors.toList());
-
-    var jwtResponse = new JwtResponse(jwt,
-      userDetails.getId(),
-      userDetails.getUsername(),
-      userDetails.getEmail(),
-      roles);
-
-    return Single.just(jwtResponse);
+        return ResponseEntity.ok(response);
+      } else {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+    }).defaultIfEmpty(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
   }
 
   @PostMapping("/signup")
-  public ResponseEntity<MessageResponse> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-    if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-      return ResponseEntity
-        .badRequest()
-        .body(new MessageResponse("Error: Username is already taken!"));
-    }
-    if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-      return ResponseEntity
-        .badRequest()
-        .body(new MessageResponse("Error: Email is already in use!"));
-    }
-    if (!properties.getSecurityMapping().containsKey(signUpRequest.getEmail())) {
-      return ResponseEntity
-        .badRequest()
-        .body(new MessageResponse("Error: User with email '" + signUpRequest.getEmail() + "' is not allow to register!"));
-    }
+  public Mono<ResponseEntity<MessageResponse>> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
 
-    var user = new User(
-      signUpRequest.getUsername(),
-      signUpRequest.getEmail(),
-      encoder.encode(signUpRequest.getPassword()),
-      properties.getSecurityMapping().getOrDefault(signUpRequest.getEmail(), List.of(Role.ROLE_USER.name())).stream().map(Role::valueOf).collect(Collectors.toSet())
-    );
-    userRepository.save(user);
-    return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+
+//    return userRepository.findByUsername(signUpRequest.getUsername())
+//      .map(username -> {
+//        logger.error("found username");
+//        throw new IllegalArgumentException("Error: Username is already taken!");
+//      })
+//      .switchIfEmpty(userRepository.findByEmail(signUpRequest.getEmail())
+//        .map(email -> {
+//          logger.error("found email");
+//          return Mono.error(new IllegalArgumentException("Error: Email is already taken!"));
+//        })
+//        .switchIfEmpty(
+//          properties.getSecurityMapping().containsKey(signUpRequest.getEmail())
+//            ? Mono.just(Mono.just(""))  : Mono.error(new IllegalArgumentException("Error: User with email '" + signUpRequest.getEmail() + "' is not allow to register!"))
+//        )
+//      )
+//      .doOnError(e -> logger.error("error in register " + e.getMessage(), e))
+//      .map(z -> {
+//          var user = new User(
+//            signUpRequest.getUsername(),
+//            signUpRequest.getEmail(),
+//            encoder.encode(signUpRequest.getPassword()),
+//            properties.getSecurityMapping().getOrDefault(signUpRequest.getEmail(), List.of(Role.ROLE_USER.name())).stream().map(Role::valueOf).collect(Collectors.toSet())
+//          );
+//
+//          return user;
+//
+//        }
+//      ).flatMap(userRepository::save)
+//      .map(s -> ResponseEntity.ok(new MessageResponse("User registered successfully!")))
+//      ;
+
+    return Mono.zip(
+      userRepository.existsByUsername(signUpRequest.getUsername()),
+      userRepository.existsByEmail(signUpRequest.getEmail()),
+      (userNameExists, emailExists) -> {
+        if (userNameExists) {
+          throw new AccessDeniedException("Error: Username is already taken!");
+        }
+        if (emailExists) {
+          throw new AccessDeniedException("Error: Email is already in use!");
+        }
+        if (!properties.getSecurityMapping().containsKey(signUpRequest.getEmail())) {
+          throw new AccessDeniedException("Error: User with email '" + signUpRequest.getEmail() + "' is not allow to register!");
+        }
+        var user = new User(
+          signUpRequest.getUsername(),
+          signUpRequest.getEmail(),
+          encoder.encode(signUpRequest.getPassword()),
+          properties.getSecurityMapping().getOrDefault(signUpRequest.getEmail(), List.of(Role.ROLE_USER.name())).stream().map(Role::valueOf).collect(Collectors.toSet())
+        );
+        return user;
+      }
+    ).flatMap(userRepository::save)
+      .map(s -> ResponseEntity.ok(new MessageResponse("User registered successfully!")))
+      ;
   }
 }

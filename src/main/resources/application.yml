@@ -1,8 +1,6 @@
 spring:
-  banner:
-    location: banner.txt
   application:
-    name: football-be
+    name: mg-clog-be
   thymeleaf:
     cache: false
   data:
@@ -10,7 +8,6 @@ spring:
       database: clog
       host: localhost
       port: 27017
-
 management:
   endpoints:
     web:
@@ -19,7 +16,8 @@ management:
   endpoint:
     health:
       show-details: ALWAYS
-
+springdoc:
+  show-actuator: true
 clog:
   jwtSecret: footballSecretKey
   jwtExpirationMs: 8640000

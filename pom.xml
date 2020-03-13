@@ -25,8 +25,7 @@
   <properties>
     <maven.build.timestamp.format>yyMMddHHmmss</maven.build.timestamp.format>
     <java.version>13</java.version>
-
-    <springdoc-openapi-ui.version>1.2.30</springdoc-openapi-ui.version>
+    <springdoc-openapi-ui.version>1.2.32</springdoc-openapi-ui.version>
     <disruptor.version>3.4.2</disruptor.version>
     <reactor-adapter.version>3.3.2.RELEASE</reactor-adapter.version>
   </properties>
@@ -49,33 +48,10 @@
 
     <!-- reactive -->
     <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
-      <artifactId>rxjava</artifactId>
-    </dependency>
-    <!-- convert from reactor to rxjava2 -->
-    <dependency>
-      <groupId>io.projectreactor.addons</groupId>
-      <artifactId>reactor-adapter</artifactId>
-      <version>${reactor-adapter.version}</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
     </dependency>
 
-
-    <!-- Framework for developing RESTful Web Services in Java that provides support for JAX-RS APIs. -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jersey</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-tomcat</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- using undertow instead of tomcat to get better performance -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-undertow</artifactId>
-    </dependency>
     <!-- Spring Boot includes a number of additional features to help you monitor and manage your application -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -84,16 +60,16 @@
     <!-- The springdoc-openapi Java library helps automating the generation of API documentation using Spring Boot projects. -->
     <dependency>
       <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-ui</artifactId>
+      <artifactId>springdoc-openapi-webflux-ui</artifactId>
       <version>${springdoc-openapi-ui.version}</version>
     </dependency>
 
     <!-- is an annotation processor that generates metadata about classes in your application that are annotated with @ConfigurationProperties -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-configuration-processor</artifactId>
-      <optional>true</optional>
-    </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <optional>true</optional>
+      </dependency>
 
 
     <!-- SECURITY -->
@@ -139,7 +115,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
 
   <build>
     <finalName>${project.version}-${maven.build.timestamp}</finalName>

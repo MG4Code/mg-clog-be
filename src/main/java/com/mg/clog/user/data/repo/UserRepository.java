@@ -2,14 +2,15 @@ package com.mg.clog.user.data.repo;
 
 
 import com.mg.clog.user.data.model.User;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import reactor.core.publisher.Mono;
 
-import java.util.Optional;
+public interface UserRepository extends ReactiveMongoRepository<User, String> {
+  Mono<User> findByUsername(String username);
 
-public interface UserRepository extends MongoRepository<User, String> {
-  Optional<User> findByUsername(String username);
+  Mono<Boolean> existsByUsername(String username);
 
-  Boolean existsByUsername(String username);
+  Mono<Boolean> existsByEmail(String email);
 
-  Boolean existsByEmail(String email);
+  Mono<User> findByEmail(String email);
 }

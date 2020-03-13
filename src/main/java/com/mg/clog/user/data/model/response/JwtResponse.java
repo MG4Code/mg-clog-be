@@ -1,22 +1,25 @@
 package com.mg.clog.user.data.model.response;
 
+import java.util.Date;
 import java.util.List;
 
 public class JwtResponse {
-	private String token;
-	private String type = "Bearer";
-	private String id;
-	private String username;
-	private String email;
-	private List<String> roles;
+  private String token;
+  private String type = "Bearer";
+  private String id;
+  private String username;
+  private String email;
+  private Date expires;
+  private List<String> roles;
 
-	public JwtResponse(String accessToken, String id, String username, String email, List<String> roles) {
-		this.token = accessToken;
-		this.id = id;
-		this.username = username;
-		this.email = email;
-		this.roles = roles;
-	}
+  public JwtResponse(String accessToken, String id, String username, String email, Date expires, List<String> roles) {
+    this.token = accessToken;
+    this.id = id;
+    this.username = username;
+    this.email = email;
+    this.expires = expires;
+    this.roles = roles;
+  }
 
   public String getToken() {
     return token;
@@ -60,6 +63,15 @@ public class JwtResponse {
 
   public JwtResponse setEmail(String email) {
     this.email = email;
+    return this;
+  }
+
+  public Date getExpires() {
+    return expires;
+  }
+
+  public JwtResponse setExpires(Date expires) {
+    this.expires = expires;
     return this;
   }
 
