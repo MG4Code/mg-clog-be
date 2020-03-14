@@ -46,6 +46,22 @@ public class WebSecurityConfig {
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
     return http
+      .authorizeExchange()
+      .pathMatchers(HttpMethod.OPTIONS).permitAll()
+      // ALLOW FOR SWAGGER UI
+      .pathMatchers("/swagger-ui.html").permitAll()
+      .pathMatchers("/webjars/swagger-ui/**").permitAll()
+      .pathMatchers("/v3/api-docs/**").permitAll()
+      // ALLOW FOR ACTUATOR
+      .pathMatchers("/actuator/**").permitAll()
+      // ALLOW LOGIN and REGISTER
+      .pathMatchers("/clog/v1/user/signin").permitAll()
+      .pathMatchers("/clog/v1/user/signup").permitAll()
+      // all the rest needs to be authenticated
+      .anyExchange().authenticated()
+      .and()
+      .authenticationManager(authenticationManager)
+      .securityContextRepository(securityContextRepository)
       .exceptionHandling()
       .authenticationEntryPoint((swe, e) -> Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED)))
       .accessDeniedHandler((swe, e) -> Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN)))
@@ -53,12 +69,6 @@ public class WebSecurityConfig {
       .csrf().disable()
       .formLogin().disable()
       .httpBasic().disable()
-      .authenticationManager(authenticationManager)
-      .securityContextRepository(securityContextRepository)
-      .authorizeExchange()
-      .pathMatchers(HttpMethod.OPTIONS).permitAll()
-      .pathMatchers("/**").permitAll()
-      .anyExchange().authenticated()
-      .and().build();
+      .build();
   }
 }

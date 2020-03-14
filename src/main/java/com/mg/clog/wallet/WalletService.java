@@ -24,6 +24,11 @@ public class WalletService {
       .doOnNext(e -> logger.info(e.toString()));
   }
 
+  public Flux<Wallet> findByOwner(String userId) {
+    return repo.findAllByOwner(userId)
+      .doOnNext(e -> logger.info(e.toString()));
+  }
+
   public Mono<Wallet> add(Wallet player) {
     return repo.save(player);
   }

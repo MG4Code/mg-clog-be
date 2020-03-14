@@ -38,11 +38,13 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
       for (String role : rolesMap) {
         roles.add(Role.valueOf(role));
       }
+      var userId = claims.get("userId");
       var auth = new UsernamePasswordAuthenticationToken(
         username,
         null,
         roles.stream().map(authority -> new SimpleGrantedAuthority(authority.name())).collect(Collectors.toList())
       );
+      auth.setDetails(userId);
       return Mono.just(auth);
     } else {
       return Mono.empty();

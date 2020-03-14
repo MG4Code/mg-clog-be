@@ -1,25 +1,33 @@
 package com.mg.clog.wallet;
 
 import com.mg.clog.wallet.data.model.Wallet;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("clog/v1/wallet")
 public class WalletController {
 
   private final WalletService service;
 
-  @Autowired
   public WalletController(WalletService service) {
     this.service = service;
   }
 
   @GetMapping
-  public Flux<Wallet> list() {
+  @PreAuthorize("hasRole('ADMIN')")
+  public Flux<Wallet> getAll() {
     return service.list();
+  }
+
+  @RequestMapping("/my")
+  @GetMapping
+  @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+  public Flux<Wallet> get(Authentication authentication) {
+    return service.findByOwner(authentication.getDetails().toString());
   }
 
   @GetMapping("id")
@@ -28,13 +36,13 @@ public class WalletController {
   }
 
   @PostMapping
-  public Mono<Wallet> add(@RequestBody Wallet player) {
-    return service.add(player);
+  public Mono<Wallet> add(@RequestBody Wallet wallet) {
+    return service.add(wallet);
   }
 
   @PutMapping("/{id}")
-  public Mono<Wallet> put(@PathVariable("id") String id, @RequestBody Wallet player) {
-    return service.put(id, player);
+  public Mono<Wallet> put(@PathVariable("id") String id, @RequestBody Wallet wallet) {
+    return service.put(id, wallet);
   }
 
   @DeleteMapping("/{id}")

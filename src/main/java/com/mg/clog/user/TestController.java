@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/clog/v1/test")
 public class TestController {
   @GetMapping("/all")
   public Mono<String> allAccess() {
@@ -21,16 +21,9 @@ public class TestController {
 
   @GetMapping("/user")
   @Operation(security = { @SecurityRequirement(name = WebSecurityConfig.BEARER_KEY) })
-  @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
+  @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
   public Mono<String> userAccess() {
     return Mono.just("User Content.");
-  }
-
-  @GetMapping("/mod")
-  @Operation(security = { @SecurityRequirement(name = WebSecurityConfig.BEARER_KEY) })
-  @PreAuthorize("hasRole('MODERATOR')")
-  public Mono<String> moderatorAccess() {
-    return Mono.just("Moderator Board.");
   }
 
   @GetMapping("/admin")

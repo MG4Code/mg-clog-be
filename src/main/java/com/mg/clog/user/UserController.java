@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("clog/v1/user")
 public class UserController {
 
   private Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -69,39 +69,6 @@ public class UserController {
 
   @PostMapping("/signup")
   public Mono<ResponseEntity<MessageResponse>> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-
-
-//    return userRepository.findByUsername(signUpRequest.getUsername())
-//      .map(username -> {
-//        logger.error("found username");
-//        throw new IllegalArgumentException("Error: Username is already taken!");
-//      })
-//      .switchIfEmpty(userRepository.findByEmail(signUpRequest.getEmail())
-//        .map(email -> {
-//          logger.error("found email");
-//          return Mono.error(new IllegalArgumentException("Error: Email is already taken!"));
-//        })
-//        .switchIfEmpty(
-//          properties.getSecurityMapping().containsKey(signUpRequest.getEmail())
-//            ? Mono.just(Mono.just(""))  : Mono.error(new IllegalArgumentException("Error: User with email '" + signUpRequest.getEmail() + "' is not allow to register!"))
-//        )
-//      )
-//      .doOnError(e -> logger.error("error in register " + e.getMessage(), e))
-//      .map(z -> {
-//          var user = new User(
-//            signUpRequest.getUsername(),
-//            signUpRequest.getEmail(),
-//            encoder.encode(signUpRequest.getPassword()),
-//            properties.getSecurityMapping().getOrDefault(signUpRequest.getEmail(), List.of(Role.ROLE_USER.name())).stream().map(Role::valueOf).collect(Collectors.toSet())
-//          );
-//
-//          return user;
-//
-//        }
-//      ).flatMap(userRepository::save)
-//      .map(s -> ResponseEntity.ok(new MessageResponse("User registered successfully!")))
-//      ;
-
     return Mono.zip(
       userRepository.existsByUsername(signUpRequest.getUsername()),
       userRepository.existsByEmail(signUpRequest.getEmail()),
@@ -115,13 +82,12 @@ public class UserController {
         if (!properties.getSecurityMapping().containsKey(signUpRequest.getEmail())) {
           throw new AccessDeniedException("Error: User with email '" + signUpRequest.getEmail() + "' is not allow to register!");
         }
-        var user = new User(
+        return new User(
           signUpRequest.getUsername(),
           signUpRequest.getEmail(),
           encoder.encode(signUpRequest.getPassword()),
           properties.getSecurityMapping().getOrDefault(signUpRequest.getEmail(), List.of(Role.ROLE_USER.name())).stream().map(Role::valueOf).collect(Collectors.toSet())
         );
-        return user;
       }
     ).flatMap(userRepository::save)
       .map(s -> ResponseEntity.ok(new MessageResponse("User registered successfully!")))
