@@ -1,6 +1,7 @@
 package com.mg.clog.user.data.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Email;
@@ -16,11 +17,13 @@ public class User {
 
   @NotBlank
   @Size(max = 20)
+  @Indexed(unique = true)
   private String username;
 
   @NotBlank
   @Size(max = 50)
   @Email
+  @Indexed(unique = true)
   private String email;
 
   @NotBlank
