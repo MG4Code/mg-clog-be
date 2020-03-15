@@ -30,9 +30,9 @@ public class WalletController {
     return service.findByOwner(authentication.getDetails().toString());
   }
 
-  @GetMapping("id")
-  public Mono<Wallet> findPlayer(@RequestParam("q") String id) {
-    return service.findWalletById(id);
+  @GetMapping("/{id}")
+  public Mono<Wallet> findWalletByIds(@PathVariable("id") String id) {
+    return service.findById(id);
   }
 
   @PostMapping

@@ -4,12 +4,12 @@ import com.mg.clog.wallet.data.model.Wallet;
 import com.mg.clog.wallet.data.repo.WalletRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
-@Service
+@Component
 public class WalletService {
 
   private Logger logger = LoggerFactory.getLogger(WalletService.class);
@@ -29,8 +29,8 @@ public class WalletService {
       .doOnNext(e -> logger.info(e.toString()));
   }
 
-  public Mono<Wallet> add(Wallet player) {
-    return repo.save(player);
+  public Mono<Wallet> add(Wallet wallet) {
+    return repo.save(wallet);
   }
 
   public Mono<Wallet> put(String id, Wallet wallet) {
@@ -51,7 +51,7 @@ public class WalletService {
     return repo.deleteById(id);
   }
 
-  public Mono<Wallet> findWalletById(String id) {
+  public Mono<Wallet> findById(String id) {
     return repo.findById(id);
   }
 
