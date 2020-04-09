@@ -24,7 +24,7 @@
 
   <properties>
     <maven.build.timestamp.format>yyMMddHHmmss</maven.build.timestamp.format>
-    <java.version>13</java.version>
+    <java.version>14</java.version>
     <springdoc-openapi-ui.version>1.2.32</springdoc-openapi-ui.version>
     <disruptor.version>3.4.2</disruptor.version>
     <reactor-adapter.version>3.3.2.RELEASE</reactor-adapter.version>
