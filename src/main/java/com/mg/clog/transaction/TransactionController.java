@@ -2,7 +2,15 @@ package com.mg.clog.transaction;
 
 import com.mg.clog.transaction.data.model.Transaction;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,13 +41,15 @@ public class TransactionController {
   }
 
   @PostMapping
-  public Mono<Transaction> add(@RequestBody Transaction wallet) {
-    return service.add(wallet);
+  public Mono<Transaction> add(@RequestBody Transaction transaction, Authentication authentication) {
+    var userId = authentication.getDetails().toString();
+    transaction.setOwner(userId);
+    return service.add(transaction);
   }
 
   @PutMapping("/{id}")
-  public Mono<Transaction> put(@PathVariable("id") String id, @RequestBody Transaction wallet) {
-    return service.put(id, wallet);
+  public Mono<Transaction> put(@PathVariable("id") String id, @RequestBody Transaction transaction) {
+    return service.put(id, transaction);
   }
 
   @PutMapping("/{id}/check")

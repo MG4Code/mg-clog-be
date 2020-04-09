@@ -1,11 +1,9 @@
 package com.mg.clog.transaction.data.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Instant;
 import java.util.Date;
 
 @Document(collection = "transaction")
@@ -18,7 +16,6 @@ public class Transaction {
   private String wallet;
   private String owner;
   private Long amount;
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   private Date dateTime;
   private boolean checked;
 
