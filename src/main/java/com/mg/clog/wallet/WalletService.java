@@ -33,6 +33,20 @@ public class WalletService {
     return repo.save(wallet);
   }
 
+  public Mono<Wallet> put(String id, String userId, Wallet wallet) {
+    return repo.findByIdAndOwner(id, userId)
+      .switchIfEmpty(Mono.error(new IllegalArgumentException("No wallet found with id '" + id + "'")))
+      .map(byId -> {
+        if (wallet.getName() != null) {
+          byId.setName(wallet.getName());
+        }
+        if (wallet.getNumber() != null) {
+          byId.setNumber(wallet.getNumber());
+        }
+        return byId;
+      }).flatMap(repo::save);
+  }
+
   public Mono<Wallet> put(String id, Wallet wallet) {
     return repo.findById(id)
       .switchIfEmpty(Mono.error(new IllegalArgumentException("No wallet found with id '" + id + "'")))
@@ -50,9 +64,16 @@ public class WalletService {
   public Mono<Void> delete(String id) {
     return repo.deleteById(id);
   }
+  public Mono<Void> delete(String id, String userId) {
+    return repo.deleteByIdAndOwner(id, userId);
+  }
 
   public Mono<Wallet> findById(String id) {
     return repo.findById(id);
+  }
+
+  public Mono<Wallet> findByIdAndOwner(String id, String userId) {
+    return repo.findByIdAndOwner(id, userId);
   }
 
 }

@@ -2,8 +2,14 @@ package com.mg.clog.wallet;
 
 import com.mg.clog.wallet.data.model.Wallet;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,15 +29,8 @@ public class WalletController {
     return service.list();
   }
 
-  @RequestMapping("/my")
-  @GetMapping
-  @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-  public Flux<Wallet> get(Authentication authentication) {
-    return service.findByOwner(authentication.getDetails().toString());
-  }
-
   @GetMapping("/{id}")
-  public Mono<Wallet> findWalletByIds(@PathVariable("id") String id) {
+  public Mono<Wallet> findWalletById(@PathVariable("id") String id) {
     return service.findById(id);
   }
 
