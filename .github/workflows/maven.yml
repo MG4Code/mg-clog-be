@@ -1,10 +1,8 @@
-name: MG Build Workflow
-
+name: MG CLOG Backend
 on:
   push:
     branches:
       - master
-
 jobs:
   build:
     runs-on: ubuntu-latest
