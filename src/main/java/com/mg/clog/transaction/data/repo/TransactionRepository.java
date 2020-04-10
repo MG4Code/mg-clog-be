@@ -9,4 +9,6 @@ public interface TransactionRepository extends ReactiveSortingRepository<Transac
 
   Flux<Transaction> findAllByWalletOrderByDateTimeAsc(String walletId, Pageable page);
 
+  Flux<Transaction> findAllByWalletOrderByDateTimeDesc(String walletId, Pageable page);
+
 }

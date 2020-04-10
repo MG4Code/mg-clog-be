@@ -25,5 +25,7 @@ clog:
     '[aigner.georg.79@gmail.com]':
       - ROLE_USER
       - ROLE_ADMIN
+    '[aigner.christina.83@gmail.com]':
+      - ROLE_USER
     '[mg4code@gmail.com]':
       - ROLE_USER

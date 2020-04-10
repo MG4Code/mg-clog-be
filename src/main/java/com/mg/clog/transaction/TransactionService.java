@@ -27,7 +27,7 @@ public class TransactionService {
   }
 
   public Flux<Transaction> findByWallet(String walletId, int skip, int limit) {
-    return repo.findAllByWalletOrderByDateTimeAsc(walletId, new OffsetBasedPageRequest(skip, limit))
+    return repo.findAllByWalletOrderByDateTimeDesc(walletId, new OffsetBasedPageRequest(skip, limit))
       .doOnNext(e -> logger.info(e.toString()));
   }
 

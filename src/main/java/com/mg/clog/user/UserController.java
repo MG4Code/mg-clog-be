@@ -43,6 +43,11 @@ public class UserController {
     this.properties = properties;
   }
 
+  @GetMapping("/{userId}")
+  public Mono<User> getUserName(@PathVariable("userId") String userId) {
+    return userRepository.findById(userId);
+  }
+
   @PostMapping("/signin")
   public Mono<ResponseEntity<?>> login(@Valid @RequestBody LoginRequest loginRequest) {
     return userRepository.findByUsername(loginRequest.getUsername()).map((userDetails) -> {
