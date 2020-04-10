@@ -2,8 +2,11 @@ package com.mg.clog.transaction;
 
 import com.mg.clog.transaction.data.model.Transaction;
 import com.mg.clog.transaction.data.repo.TransactionRepository;
+import com.mg.clog.util.OffsetBasedPageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,8 +26,8 @@ public class TransactionService {
       .doOnNext(e -> logger.info(e.toString()));
   }
 
-  public Flux<Transaction> findByWallet(String walletId) {
-    return repo.findAllByWallet(walletId)
+  public Flux<Transaction> findByWallet(String walletId, int skip, int limit) {
+    return repo.findAllByWalletOrderByDateTimeAsc(walletId, new OffsetBasedPageRequest(skip, limit))
       .doOnNext(e -> logger.info(e.toString()));
   }
 

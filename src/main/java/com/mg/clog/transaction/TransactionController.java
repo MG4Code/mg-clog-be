@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -31,8 +32,15 @@ public class TransactionController {
   }
 
   @GetMapping("/wallet/{walletId}")
-  public Flux<Transaction> findByWallet(@PathVariable("walletId") String walletId) {
-    return service.findByWallet(walletId);
+  public Flux<Transaction> findByWallet(
+    @PathVariable(name = "walletId") String walletId,
+    @RequestParam(name = "skip", defaultValue = "0") int skip,
+    @RequestParam(name = "limit", defaultValue = "10") int limit)
+  {
+    if (limit > 100) {
+      limit = 100;
+    }
+    return service.findByWallet(walletId, skip, limit);
   }
 
   @GetMapping("/{id}")
